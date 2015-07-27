@@ -49,7 +49,7 @@ extension ViewController: UICollectionViewDataSource, UICollectionViewDelegate {
     func collectionView(collectionView: UICollectionView,
                         layout collectionViewLayout: UICollectionViewLayout,
                         sizeForItemAtIndexPath indexPath: NSIndexPath) -> CGSize {
-        return CGSizeMake(CGRectGetWidth(collectionView.bounds) - cellSpacing, cellHeight)
+        return CGSizeMake(collectionView.bounds.width - cellSpacing, cellHeight)
     }
 
 }

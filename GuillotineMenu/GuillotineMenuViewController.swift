@@ -62,7 +62,7 @@ class GuillotineMenuViewController: UIViewController {
     func setMenuButtonWithImage(image: UIImage) {
         let statusbarHeight = UIApplication.sharedApplication().statusBarFrame.size.height
         
-        let buttonImage = UIImage(CGImage: image.CGImage, scale: 1.0, orientation: .Right)
+        let buttonImage = UIImage(CGImage: image.CGImage!, scale: 1.0, orientation: .Right)
         
         if UIDevice.currentDevice().orientation == .LandscapeLeft || UIDevice.currentDevice().orientation == .LandscapeRight {
             menuButton = UIButton(frame: CGRectMake(menuButtonPortraitLeadingConstant, menuButtonPortraitLeadingConstant+statusbarHeight, 30.0, 30.0))
@@ -74,7 +74,7 @@ class GuillotineMenuViewController: UIViewController {
         menuButton.setImage(image, forState: .Highlighted)
         menuButton.imageView!.contentMode = .Center
         menuButton.addTarget(self, action: Selector("closeMenuButtonTapped"), forControlEvents: .TouchUpInside)
-        menuButton.setTranslatesAutoresizingMaskIntoConstraints(false)
+        menuButton.translatesAutoresizingMaskIntoConstraints = false
         menuButton.transform = CGAffineTransformMakeRotation( ( 90 * CGFloat(M_PI) ) / 180 );
         self.view.addSubview(menuButton)
         
