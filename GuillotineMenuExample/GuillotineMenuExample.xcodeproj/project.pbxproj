@@ -148,6 +148,8 @@
 		2D1F8E7D1AD7D9B40049A439 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				LastSwiftMigration = 0700;
+				LastSwiftUpdateCheck = 0700;
 				LastUpgradeCheck = 0630;
 				ORGANIZATIONNAME = Yalantis;
 				TargetAttributes = {

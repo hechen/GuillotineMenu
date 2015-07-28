@@ -54,62 +54,70 @@ class GuillotineTransitionAnimation: NSObject {
     
     private func animatePresentation(context: UIViewControllerContextTransitioning) {
         menu = context.viewControllerForKey(UITransitionContextToViewControllerKey)!
-        if let animationDelegate = menu as? protocol<GuillotineAnimationDelegate> {
+        if let animationDelegate = menu as? GuillotineAnimationDelegate {
             animationDelegate.willStartPresentation?()
         }
         // Move view off screen to avoid blink at start
-        menu.view.center = CGPointMake(0, CGRectGetHeight(menu.view.frame))
+        menu.view.center = CGPointMake(0, menu.view.frame.height)
         menu.beginAppearanceTransition(true, animated: true)
-        context.containerView().addSubview(menu.view)
+        context.containerView()!.addSubview(menu.view)
         animateMenu(menu.view, context: context)
     }
     
     private func animateDismissal(context: UIViewControllerContextTransitioning) {
         menu = context.viewControllerForKey(UITransitionContextFromViewControllerKey)!
         
-        if let animationDelegate = menu as? protocol<GuillotineAnimationDelegate> {
+        if let animationDelegate = menu as? GuillotineAnimationDelegate {
             animationDelegate.willStartDismissal?()
         }
         
-        let host = context.viewControllerForKey(UITransitionContextFromViewControllerKey)!
         animator.delegate = self
         animateMenu(menu.view, context: context)
     }
     
     private func animateMenu(view: UIView, context:UIViewControllerContextTransitioning) {
         animationContext = context
-        animator = UIDynamicAnimator(referenceView: context.containerView())
+        animator = UIDynamicAnimator(referenceView: context.containerView()!)
         animator.delegate = self
         statusbarHeight = UIApplication.sharedApplication().statusBarFrame.size.height
-        if let menuProt = menu as? protocol<GuillotineAnimationProtocol> {
+        if let menuProt = menu as? GuillotineAnimationProtocol {
             navigationBarHeight = menuProt.navigationBarHeight()
             anchorPoint = menuProt.anchorPoint()
         }
         
         var rotationDirection = CGVectorMake(0, -vectorDY)
         attachmentBehaviour = UIAttachmentBehavior(item: view, offsetFromCenter: UIOffsetMake(-view.bounds.size.width/2+anchorPoint.x, -view.bounds.size.height/2+anchorPoint.y), attachedToAnchor: anchorPoint)
+        let containerFrame = context.containerView()!.frame
         if self.mode == .Presentation {
             showHostTitleLabel(false, animated: true)
             view.transform = CGAffineTransformRotate(CGAffineTransformIdentity, (initialMenuRotationAngle / 180.0) * CGFloat(M_PI));
-            view.frame = CGRectMake(-statusbarHeight, -CGRectGetHeight(view.frame)+statusbarHeight+navigationBarHeight, CGRectGetWidth(view.frame), CGRectGetHeight(view.frame))
+            view.frame = CGRectMake(-statusbarHeight, -view.frame.height+statusbarHeight+navigationBarHeight, view.frame.width, view.frame.height)
             rotationDirection = CGVectorMake(0, vectorDY)
             
             if UIDevice.currentDevice().orientation == .LandscapeLeft || UIDevice.currentDevice().orientation == .LandscapeRight {
-                collisionBehaviour.addBoundaryWithIdentifier("collide", fromPoint: CGPointMake(CGRectGetHeight(context.containerView().frame), CGRectGetHeight(context.containerView().frame)+0.6),
-                                                                          toPoint: CGPointMake(CGRectGetHeight(context.containerView().frame), CGRectGetHeight(context.containerView().frame)+0.6))
+                collisionBehaviour.addBoundaryWithIdentifier("collide",
+                    fromPoint: CGPointMake(containerFrame.height, containerFrame.height + 0.6),
+                    toPoint: CGPointMake(containerFrame.height, containerFrame.height + 0.6)
+                )
             } else {
-                collisionBehaviour.addBoundaryWithIdentifier("collide", fromPoint: CGPointMake(-0.6, CGRectGetHeight(context.containerView().frame)/2),
-                                                                          toPoint: CGPointMake(-0.6, CGRectGetHeight(context.containerView().frame)))
+                collisionBehaviour.addBoundaryWithIdentifier("collide",
+                    fromPoint: CGPointMake(-0.6, containerFrame.height / 2),
+                    toPoint: CGPointMake(-0.6, containerFrame.height)
+                )
             }
             
         } else {
             showHostTitleLabel(true, animated: true)
             if UIDevice.currentDevice().orientation == .LandscapeLeft || UIDevice.currentDevice().orientation == .LandscapeRight {
-                collisionBehaviour.addBoundaryWithIdentifier("collide", fromPoint: CGPointMake(-0.6, -CGRectGetHeight(context.containerView().frame)/2),
-                                                                          toPoint: CGPointMake(-0.6, -CGRectGetHeight(context.containerView().frame)))
+                collisionBehaviour.addBoundaryWithIdentifier("collide",
+                    fromPoint: CGPointMake(-0.6, -containerFrame.height/2),
+                    toPoint: CGPointMake(-0.6, -containerFrame.height)
+                )
             } else {
-                collisionBehaviour.addBoundaryWithIdentifier("collide", fromPoint: CGPointMake(CGRectGetHeight(context.containerView().frame)/2, -CGRectGetWidth(context.containerView().frame)+statusbarHeight+navigationBarHeight),
-                                                                          toPoint: CGPointMake(CGRectGetHeight(context.containerView().frame), -CGRectGetWidth(context.containerView().frame)+statusbarHeight+navigationBarHeight))
+                collisionBehaviour.addBoundaryWithIdentifier("collide",
+                    fromPoint: CGPointMake(containerFrame.height/2, -containerFrame.width+statusbarHeight+navigationBarHeight),
+                    toPoint: CGPointMake(containerFrame.height, -containerFrame.width+statusbarHeight+navigationBarHeight)
+                )
             }
         }
         animator.addBehavior(self.attachmentBehaviour)
@@ -135,7 +143,7 @@ class GuillotineTransitionAnimation: NSObject {
         menu.view.addSubview(hostTitleLabel)
         hostTitleLabel.numberOfLines = 1;
         
-        if let menuProt = menu as? protocol<GuillotineAnimationProtocol> {
+        if let menuProt = menu as? GuillotineAnimationProtocol {
             hostTitleLabel.text = menuProt.hostTitle() as String
         }
         
@@ -143,7 +151,7 @@ class GuillotineTransitionAnimation: NSObject {
         hostTitleLabel.textColor = UIColor.whiteColor()
         hostTitleLabel.sizeToFit()
         let statusBarHeight = UIApplication.sharedApplication().statusBarFrame.size.height
-        hostTitleLabel.center = CGPointMake(navigationBarHeight / 2, CGRectGetWidth(menu.view.frame) / 2 + statusBarHeight)
+        hostTitleLabel.center = CGPointMake(navigationBarHeight / 2, menu.view.frame.width / 2 + statusBarHeight)
         hostTitleLabel.transform = CGAffineTransformMakeRotation( ( 90 * CGFloat(M_PI) ) / 180 );
         if mode == .Presentation {
             hostTitleLabel.alpha = 1;
@@ -171,15 +179,15 @@ extension GuillotineTransitionAnimation: UIViewControllerAnimatedTransitioning {
         }
     }
     
-    func transitionDuration(context: UIViewControllerContextTransitioning) -> NSTimeInterval {
+    func transitionDuration(context: UIViewControllerContextTransitioning?) -> NSTimeInterval {
         return duration
     }
 }
 
 extension GuillotineTransitionAnimation: UICollisionBehaviorDelegate {
-    func collisionBehavior(behavior: UICollisionBehavior, beganContactForItem item: UIDynamicItem, withBoundaryIdentifier identifier: NSCopying, atPoint p: CGPoint) {
-        println("collided")
-        if let animationDelegate = menu as? protocol<GuillotineAnimationDelegate> {
+    func collisionBehavior(behavior: UICollisionBehavior, beganContactForItem item: UIDynamicItem, withBoundaryIdentifier identifier: NSCopying?, atPoint p: CGPoint) {
+        print("collided")
+        if let animationDelegate = menu as? GuillotineAnimationDelegate {
                 animationDelegate.menuDidCollideWithBoundary?()
         }
     }
@@ -190,17 +198,17 @@ extension GuillotineTransitionAnimation: UIDynamicAnimatorDelegate {
         if self.mode == .Presentation {
             self.animator.removeAllBehaviors()
             menu.view.transform = CGAffineTransformIdentity
-            menu.view.frame = animationContext.containerView().bounds
+            menu.view.frame = animationContext.containerView()!.bounds
             menu.view.superview!.addScaleToFitView(menu.view, insets: UIEdgeInsetsZero)
             anchorPoint = CGPointZero
             menu.endAppearanceTransition()
-            println("finished")
-            if let animationDelegate = menu as? protocol<GuillotineAnimationDelegate> {
+            print("finished")
+            if let animationDelegate = menu as? GuillotineAnimationDelegate {
                 animationDelegate.menuDidFinishPresentation?()
             }
         } else {
             menu.view.removeFromSuperview()
-            if let animationDelegate = menu as? protocol<GuillotineAnimationDelegate> {
+            if let animationDelegate = menu as? GuillotineAnimationDelegate {
                 animationDelegate.menuDidFinishDismissal?()
             }
         }
@@ -208,6 +216,6 @@ extension GuillotineTransitionAnimation: UIDynamicAnimatorDelegate {
     }
     
     func dynamicAnimatorWillResume(animator: UIDynamicAnimator) {
-        println("started")
+        print("started")
     }
 }
